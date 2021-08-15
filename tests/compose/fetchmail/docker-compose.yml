@@ -11,7 +11,7 @@ services:
     image: redis:alpine
     restart: always
     volumes:
-      - "/mailu/redis:/data"
+      - "${VOLUME_DIR}/mailu/redis:/data"
 
   # Core services
   front:
@@ -31,15 +31,15 @@ services:
       - "127.0.0.1:143:143"
       - "127.0.0.1:993:993"
     volumes:
-      - "/mailu/certs:/certs"
+      - "${VOLUME_DIR}/mailu/certs:/certs"
 
   admin:
     image: ${DOCKER_ORG:-mailu}/${DOCKER_PREFIX:-}admin:${MAILU_VERSION:-master}
     restart: always
     env_file: mailu.env
     volumes:
-      - "/mailu/data:/data"
-      - "/mailu/dkim:/dkim"
+      - "${VOLUME_DIR}/mailu/data:/data"
+      - "${VOLUME_DIR}/mailu/dkim:/dkim"
     depends_on:
       - redis
 
@@ -48,8 +48,8 @@ services:
     restart: always
     env_file: mailu.env
     volumes:
-      - "/mailu/mail:/mail"
-      - "/mailu/overrides:/overrides"
+      - "${VOLUME_DIR}/mailu/mail:/mail"
+      - "${VOLUME_DIR}/mailu/overrides:/overrides"
     depends_on:
       - front
 
@@ -58,7 +58,7 @@ services:
     restart: always
     env_file: mailu.env
     volumes:
-      - "/mailu/overrides:/overrides"
+      - "${VOLUME_DIR}/mailu/overrides:/overrides"
     depends_on:
       - front
 
@@ -67,9 +67,9 @@ services:
     restart: always
     env_file: mailu.env
     volumes:
-      - "/mailu/filter:/var/lib/rspamd"
-      - "/mailu/dkim:/dkim"
-      - "/mailu/overrides/rspamd:/etc/rspamd/override.d"
+      - "${VOLUME_DIR}/mailu/filter:/var/lib/rspamd"
+      - "${VOLUME_DIR}/mailu/dkim:/dkim"
+      - "${VOLUME_DIR}/mailu/overrides/rspamd:/etc/rspamd/override.d"
     depends_on:
       - front
 

@@ -20,6 +20,14 @@ def stop(exit_code):
     print_logs()
     sys.stdout.flush()
     print(subprocess.check_output("docker-compose -f " + compose_file + " down", shell=True).decode())
+
+    if exit_code == 0:
+        print("End test '{}': Success".format(test_name))
+    else:
+        print("End test '{}': FAILED".format(test_name))
+    print()
+    sys.stdout.flush()
+
     sys.exit(exit_code)
 
 # Sleep for a defined amount of time
@@ -75,9 +83,11 @@ def hooks():
     for test_file in sorted(os.listdir(test_path)):
         try:
             if test_file.endswith(".py"):
+                print("Running '{}'...".format(test_file))
                 sys.stdout.flush()
                 print(subprocess.check_output("python3 " + test_path + test_file, shell=True).decode())
             elif test_file.endswith(".sh"):
+                print("Running '{}'...".format(test_file))
                 sys.stdout.flush()
                 print(subprocess.check_output("./" + test_path + test_file, shell=True).decode())
         except subprocess.CalledProcessError as e:
@@ -85,6 +95,7 @@ def hooks():
             stop(1)
 
 # Start up containers
+print("Begin test '{}'...".format(test_name))
 sys.stdout.flush()
 print(subprocess.check_output("docker-compose -f " + compose_file + " up -d", shell=True).decode())
 print()
@@ -96,5 +107,4 @@ print()
 health_checks()
 print()
 hooks()
-print()
 stop(0)

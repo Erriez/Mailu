@@ -1,9 +1,9 @@
 name: CI
-on:
-  push:
-    branches:
-      # Feature branches
-      - feat-*
+# on:
+#   push:
+#     branches:
+#       # Feature branches
+#       - feat-*
 
 ###############################################
 # REQUIRED secrets
@@ -18,15 +18,145 @@ on:
 # Add the above secrets to your github repo to determine where the images will be pushed.
 ################################################
 
+env:
+  REGISTRY: docker.io
+  DOCKER_PREFIX:
+  MAILU_VERSION: master
+
 jobs:
   build:
     name: Build images
     runs-on: ubuntu-latest
     steps:
-      - name: Test
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set environment variables
         shell: bash
         run: |
-          echo "BRANCH=${GITHUB_REF#refs/heads/}"
+          echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1 
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      # Caching: https://docs.docker.com/ci-cd/github-actions/
+      - name: Cache Docker layers
+        if: ${{ !env.ACT }}
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Build setup
+        uses: docker/build-push-action@v2
+        with:
+          context: ./setup
+          platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_PREFIX }}setup:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+
+      - name: Build docs
+        uses: docker/build-push-action@v2
+        with:
+          context: ./docs
+          platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_PREFIX }}docs:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+
+      - name: Build none
+        uses: docker/build-push-action@v2
+        with:
+          context: ./core/none
+          platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_PREFIX }}none:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+
+      - name: Build nginx
+        uses: docker/build-push-action@v2
+        with:
+          context: ./core/nginx
+          platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_PREFIX }}nginx:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+
+      - name: Build dovecot
+        uses: docker/build-push-action@v2
+        with:
+          context: ./core/dovecot
+          platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_PREFIX }}dovecot:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+
+      - name: Build postfix
+        uses: docker/build-push-action@v2
+        with:
+          context: ./core/postfix
+          platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_PREFIX }}postfix:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+
+       name: Build rspamd
+        uses: docker/build-push-action@v2
+        with:
+          context: ./core/rspamd
+          platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_PREFIX }}rspamd:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+
+      - name: Build admin
+        uses: docker/build-push-action@v2
+        with:
+          context: ./core/admin
+          platforms: linux/arm64 #TODO: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_PREFIX }}admin:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+
+      # Build rainloop
+      - name: Build rainloop
+        uses: docker/build-push-action@v2
+        with:
+          context: ./webmails/rainloop
+          platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_PREFIX }}rainloop:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         #For branch TESTING, we set the image tag to PR-xxxx
 #       - name: Derive MAILU_VERSION for branch testing
 #         if: ${{ env.BRANCH == 'testing' }}

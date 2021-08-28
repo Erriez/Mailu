@@ -184,7 +184,7 @@ jobs:
         run: |
           docker images
           echo ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
-          docker run -it --rm --name none ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }} timeout 2 sh -c 'echo start && sleep 5 && echo finish'
+          docker run --rm --name none ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }} timeout 2 sh -c 'echo start && sleep 5 && echo finish'
 
 
 

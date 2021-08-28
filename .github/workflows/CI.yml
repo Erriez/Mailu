@@ -23,13 +23,14 @@ on:
 env:
   MAILU_VERSION: master
   MAILU_PLATFORMS: linux/amd64 #,linux/arm/v6,linux/arm/v7,linux/arm64
-  BUILD_IMAGES: false
+  BUILD_IMAGES: true
   TEST_IMAGES: true
 
 jobs:
   build:
     name: Build Mailu images
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         shell: bash
@@ -105,6 +106,7 @@ jobs:
   test:
     name: Test Mailu images
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs:
       - build
     defaults:
@@ -114,6 +116,16 @@ jobs:
       matrix:
         include:
           - test_type: core
+            test_start_delay: 2
+          - test_type: fetchmail
+            test_start_delay: 2
+          - test_type: filters
+            test_start_delay: 3
+          - test_type: rainloop
+            test_start_delay: 2
+          - test_type: roundcube
+            test_start_delay: 2
+          - test_type: webdav
             test_start_delay: 2
     steps:
       - name: Checkout

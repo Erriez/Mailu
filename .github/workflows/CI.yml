@@ -22,7 +22,7 @@ env:
   REGISTRY: docker.io
   MAILU_PREFIX:
   MAILU_VERSION: master
-  MAILU_PLATFORMS: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
+  MAILU_PLATFORMS: linux/amd64,linux/arm64 #linux/arm/v6,linux/arm/v7,linux/arm64
   MAILU_PUSH: true
   MAILU_LOAD: false
 
@@ -100,31 +100,29 @@ jobs:
           push: ${{ env.MAILU_PUSH }}
           tags: ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}nginx:${{ env.MAILU_VERSION }}
 
-      # - name: Build dovecot
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     context: ./core/dovecot
-      #     platforms: ${{ env.MAILU_PLATFORMS }}
-      #     push: ${{ env.MAILU_PUSH }}
-      #     tags: ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}dovecot:${{ env.MAILU_VERSION }}
+      - name: Build dovecot
+        uses: docker/build-push-action@v2
+        with:
+          context: ./core/dovecot
+          platforms: ${{ env.MAILU_PLATFORMS }}
+          push: ${{ env.MAILU_PUSH }}
+          tags: ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}dovecot:${{ env.MAILU_VERSION }}
 
-      # - name: Build postfix
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     context: ./core/postfix
-      #     platforms: ${{ env.MAILU_PLATFORMS }}
-      #     push: ${{ env.MAILU_PUSH }}
-      #     tags: |
-      #       ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}postfix:${{ env.MAILU_VERSION }}
+      - name: Build postfix
+        uses: docker/build-push-action@v2
+        with:
+          context: ./core/postfix
+          platforms: ${{ env.MAILU_PLATFORMS }}
+          push: ${{ env.MAILU_PUSH }}
+          tags: ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}postfix:${{ env.MAILU_VERSION }}
 
-      #  name: Build rspamd
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     context: ./core/rspamd
-      #     platforms: ${{ env.MAILU_PLATFORMS }}
-      #     push: ${{ env.MAILU_PUSH }}
-      #     tags: |
-      #       ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}rspamd:${{ env.MAILU_VERSION }}
+      - name: Build rspamd
+        uses: docker/build-push-action@v2
+        with:
+          context: ./core/rspamd
+          platforms: ${{ env.MAILU_PLATFORMS }}
+          push: ${{ env.MAILU_PUSH }}
+          tags: ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}rspamd:${{ env.MAILU_VERSION }}
 
       # - name: Build admin
       #   uses: docker/build-push-action@v2
@@ -132,8 +130,7 @@ jobs:
       #     context: ./core/admin
       #     platforms: linux/arm64 #TODO: ${{ env.MAILU_PLATFORMS }}
       #     push: ${{ env.MAILU_PUSH }}
-      #     tags: |
-      #       ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}admin:${{ env.MAILU_VERSION }}
+      #     tags: ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}admin:${{ env.MAILU_VERSION }}
 
       - name: Build rainloop
         uses: docker/build-push-action@v2
@@ -142,6 +139,14 @@ jobs:
           platforms: ${{ env.MAILU_PLATFORMS }}
           push: ${{ env.MAILU_PUSH }}
           tags: ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}rainloop:${{ env.MAILU_VERSION }}
+
+      # - name: Build roundcube
+      #   uses: docker/build-push-action@v2
+      #   with:
+      #     context: ./webmails/roundcube
+      #     platforms: ${{ env.MAILU_PLATFORMS }}
+      #     push: ${{ env.MAILU_PUSH }}
+      #     tags: ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}roundcube:${{ env.MAILU_VERSION }}
 
       # - name: Upload artifacts
       #   uses: actions/upload-artifact@v2

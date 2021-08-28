@@ -185,7 +185,7 @@ jobs:
       #     password: ${{ secrets.DOCKER_PW }}
 
       - name: Run none
-        shel: bash
+        shell: bash
         run: |
           docker images
           echo ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}

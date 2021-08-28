@@ -22,7 +22,7 @@ env:
   REGISTRY: docker.io
   MAILU_PREFIX:
   MAILU_VERSION: master
-  MAILU_PLATFORMS: linux/amd64 #,linux/arm/v6,linux/arm/v7,linux/arm64
+  MAILU_PLATFORMS: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
   MAILU_PUSH: true
   MAILU_LOAD: false
 
@@ -38,7 +38,7 @@ jobs:
         shell: bash
         run: |
           echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
-          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
+          # echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -64,23 +64,23 @@ jobs:
       #     restore-keys: |
       #       ${{ runner.os }}-buildx-
 
-      # - name: Build setup
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     context: ./setup
-      #     platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
-      #     push: ${{ env.MAILU_PUSH }}
-      #     tags: |
-      #       ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}setup:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+      - name: Build setup
+        uses: docker/build-push-action@v2
+        with:
+          context: ./setup
+          platforms: ${{ env.MAILU_PLATFORMS }}
+          push: ${{ env.MAILU_PUSH }}
+          tags: |
+            ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}setup:${{ env.MAILU_VERSION }}
 
-      # - name: Build docs
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     context: ./docs
-      #     platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
-      #     push: ${{ env.MAILU_PUSH }}
-      #     tags: |
-      #       ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}docs:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+      - name: Build docs
+        uses: docker/build-push-action@v2
+        with:
+          context: ./docs
+          platforms: ${{ env.MAILU_PLATFORMS }}
+          push: ${{ env.MAILU_PUSH }}
+          tags: |
+            ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}docs:${{ env.MAILU_VERSION }}
 
       - name: Build none
         uses: docker/build-push-action@v2
@@ -92,7 +92,7 @@ jobs:
           #outputs: type=docker,dest=/tmp/mailu-none.tar
           #cache-from: type=registry,ref=${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:buildcache-${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
           #cache-to: type=registry,ref=${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:buildcache-${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }},mode=max
-          tags: ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+          tags: ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:${{ env.MAILU_VERSION }}
 
       # - name: Build nginx
       #   uses: docker/build-push-action@v2
@@ -171,7 +171,7 @@ jobs:
         shell: bash
         run: |
           echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
-          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
+          # echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
 
       # - name: Download artifacts
       #   uses: actions/download-artifact@v2
@@ -195,7 +195,7 @@ jobs:
         shell: bash
         run: |
           docker images
-          docker run --rm --name none ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }} timeout 2 sh -c 'echo start && sleep 5 && echo finish'
+          docker run --rm --name none ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:${{ env.MAILU_VERSION }} timeout 2 sh -c 'echo start && sleep 5 && echo finish'
 
 
 

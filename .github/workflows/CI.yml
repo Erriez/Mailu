@@ -7,6 +7,8 @@ on:
 
 ###############################################
 # REQUIRED secrets
+# DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
+#    Default docker.io
 # DOCKER_UN: ${{ secrets.Docker_Login }}
 #    Username of docker login for pushing the images to repo $DOCKER_ORG
 # DOCKER_PW: ${{ secrets.Docker_Password }}
@@ -19,15 +21,14 @@ on:
 ################################################
 
 env:
-  REGISTRY: docker.io
   MAILU_VERSION: master
-  MAILU_PLATFORMS: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
-  MAILU_PUSH: true
-  MAILU_LOAD: false
+  MAILU_PLATFORMS: linux/amd64 #,linux/arm/v6,linux/arm/v7,linux/arm64
+  BUILD_IMAGES: false
+  TEST_IMAGES: true
 
 jobs:
   build:
-    name: Build images
+    name: Build Mailu images
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -41,187 +42,133 @@ jobs:
           - image: docs
             context: ./docs
           # Core
-          - image: none
-            context: ./core/none
+          - image: admin
+            context: ./core/admin
+          - image: dovecot
+            context: ./core/dovecot
           - image: nginx
             context: ./core/nginx
+          - image: none
+            context: ./core/none
+          - image: postfix
+            context: ./core/postfix
+          - image: rspamd
+            context: ./core/rspamd
           # Webmail
           - image: rainloop
             context: ./webmails/rainloop
+          - image: roundcube
+            context: ./webmails/roundcube
           # Optional
+          - image: clamav
+            context: ./optional/clamav
+          - image: fetchmail
+            context: ./optional/fetchmail
+          - image: postgresql
+            context: ./optional/postgresql
+          - image: radicale
+            context: ./optional/radicale
           - image: traefik-certdumper
             context: ./optional/traefik-certdumper
+          - image: unbound
+            context: ./optional/unbound
     steps:
       - name: Checkout
+        if: ${{ env.BUILD_IMAGES == 'true' }}
         uses: actions/checkout@v2
 
-      - name: Set environment variables
-        run: |
-          echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
-          # echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
-
       - name: Set up QEMU
+        if: ${{ env.BUILD_IMAGES == 'true' }}
         uses: docker/setup-qemu-action@v1
 
       - name: Set up Docker Buildx
+        if: ${{ env.BUILD_IMAGES == 'true' }}
         uses: docker/setup-buildx-action@v1
 
       - name: Login to DockerHub
-        if: env.MAILU_PUSH == 'true'
+        if: ${{ env.BUILD_IMAGES == 'true' }}
         uses: docker/login-action@v1 
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ${{ secrets.DOCKER_REGISTRY }}
           username: ${{ secrets.DOCKER_ORG }}
           password: ${{ secrets.DOCKER_PW }}
 
       - name: Build images
+        if: ${{ env.BUILD_IMAGES == 'true' }}
         uses: docker/build-push-action@v2
         with:
           context: ./${{ matrix.context }}
           platforms: ${{ env.MAILU_PLATFORMS }}
-          push: ${{ env.MAILU_PUSH }}
+          push: true
           tags: ${{ secrets.DOCKER_ORG }}/${{ secrets.DOCKER_PREFIX }}${{ matrix.image }}:${{ env.MAILU_VERSION }}
 
-      # # Caching: https://docs.docker.com/ci-cd/github-actions/
-      # - name: Cache Docker layers
-      #   if: ${{ !env.ACT }}
-      #   uses: actions/cache@v2
-      #   with:
-      #     path: /tmp/.buildx-cache
-      #     key: ${{ runner.os }}-buildx-${{ github.sha }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-buildx-
-
-      # - name: Build setup
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     context: ./setup
-      #     platforms: ${{ env.MAILU_PLATFORMS }}
-      #     push: ${{ env.MAILU_PUSH }}
-      #     tags: ${{ secrets.DOCKER_ORG }}/${{ secrets.DOCKER_PREFIX }}setup:${{ env.MAILU_VERSION }}
-
-      # - name: Build docs
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     context: ./docs
-      #     platforms: ${{ env.MAILU_PLATFORMS }}
-      #     push: ${{ env.MAILU_PUSH }}
-      #     tags: ${{ secrets.DOCKER_ORG }}/${{ secrets.DOCKER_PREFIX }}docs:${{ env.MAILU_VERSION }}
-
-      # - name: Build none
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     context: ./core/none
-      #     platforms: ${{ env.MAILU_PLATFORMS }}
-      #     #load: ${{ env.MAILU_LOAD }}
-      #     push: ${{ env.MAILU_PUSH }}
-      #     #outputs: type=docker,dest=/tmp/mailu-none.tar
-      #     #cache-from: type=registry,ref=${{ secrets.DOCKER_ORG }}/${{ secrets.DOCKER_PREFIX }}none:buildcache-${{ env.MAILU_VERSION }}
-      #     #cache-to: type=registry,ref=${{ secrets.DOCKER_ORG }}/${{ secrets.DOCKER_PREFIX }}none:buildcache-${{ env.MAILU_VERSION }},mode=max
-      #     tags: ${{ secrets.DOCKER_ORG }}/${{ secrets.DOCKER_PREFIX }}none:${{ env.MAILU_VERSION }}
-
-      # - name: Build nginx
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     context: ./core/nginx
-      #     platforms: ${{ env.MAILU_PLATFORMS }}
-      #     push: ${{ env.MAILU_PUSH }}
-      #     tags: ${{ secrets.DOCKER_ORG }}/${{ secrets.DOCKER_PREFIX }}nginx:${{ env.MAILU_VERSION }}
-
-      # - name: Build dovecot
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     context: ./core/dovecot
-      #     platforms: ${{ env.MAILU_PLATFORMS }}
-      #     push: ${{ env.MAILU_PUSH }}
-      #     tags: ${{ secrets.DOCKER_ORG }}/${{ secrets.DOCKER_PREFIX }}dovecot:${{ env.MAILU_VERSION }}
-
-      # - name: Build postfix
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     context: ./core/postfix
-      #     platforms: ${{ env.MAILU_PLATFORMS }}
-      #     push: ${{ env.MAILU_PUSH }}
-      #     tags: ${{ secrets.DOCKER_ORG }}/${{ secrets.DOCKER_PREFIX }}postfix:${{ env.MAILU_VERSION }}
-
-      # - name: Build rspamd
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     context: ./core/rspamd
-      #     platforms: ${{ env.MAILU_PLATFORMS }}
-      #     push: ${{ env.MAILU_PUSH }}
-      #     tags: ${{ secrets.DOCKER_ORG }}/${{ secrets.DOCKER_PREFIX }}rspamd:${{ env.MAILU_VERSION }}
-
-      # - name: Build admin
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     context: ./core/admin
-      #     platforms: linux/arm64 #TODO: ${{ env.MAILU_PLATFORMS }}
-      #     push: ${{ env.MAILU_PUSH }}
-      #     tags: ${{ secrets.DOCKER_ORG }}/${{ secrets.DOCKER_PREFIX }}admin:${{ env.MAILU_VERSION }}
-
-      # - name: Build rainloop
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     context: ./webmails/rainloop
-      #     platforms: ${{ env.MAILU_PLATFORMS }}
-      #     push: ${{ env.MAILU_PUSH }}
-      #     tags: ${{ secrets.DOCKER_ORG }}/${{ secrets.DOCKER_PREFIX }}rainloop:${{ env.MAILU_VERSION }}
-
-      # - name: Build roundcube
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     context: ./webmails/roundcube
-      #     platforms: ${{ env.MAILU_PLATFORMS }}
-      #     push: ${{ env.MAILU_PUSH }}
-      #     tags: ${{ secrets.DOCKER_ORG }}/${{ secrets.DOCKER_PREFIX }}roundcube:${{ env.MAILU_VERSION }}
-
-      # - name: Upload artifacts
-      #   uses: actions/upload-artifact@v2
-      #   with:
-      #     name: mailu-none
-      #     path: /tmp/mailu-none.tar
-
-      # - name: Show Docker status and images
-      #   run: |
-      #     docker ps
-      #     docker images
-
   test:
-    name: Test images
+    name: Test Mailu images
     runs-on: ubuntu-latest
     needs:
       - build
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      matrix:
+        include:
+          - test_type: core
+            test_start_delay: 2
     steps:
-      - name: Set environment variables
-        shell: bash
-        run: |
-          echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
-          # echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
+      - name: Checkout
+        if: ${{ env.TEST_IMAGES == 'true' }}
+        uses: actions/checkout@v2
 
-      # - name: Download artifacts
-      #   uses: actions/download-artifact@v2
-      #   with:
-      #     name: mailu-none
-      #     path: /tmp
+      - name: Run test suite
+        if: ${{ env.TEST_IMAGES == 'true' }}
+        run: |
+          echo "Install Python packages"
+          python3 -m pip install -r tests/requirements.txt
+          echo "Copy certs"
+          sudo -- sh -c 'mkdir -p /mailu && cp -r tests/certs /mailu && chmod 600 /mailu/certs/*'
+          echo "Run tests"
+          python tests/compose/test.py ${{ matrix.test_type }} ${{ matrix.test_start_delay }}
+        env:
+          DOCKER_ORG: ${{ secrets.DOCKER_ORG }}
+          DOCKER_PREFIX: ${{ secrets.DOCKER_PREFIX }}
+          MAILU_VERSION: ${{ env.MAILU_VERSION }}
+
+  # test:
+  #   name: Test images
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     - build
+  #   steps:
+  #     - name: Set environment variables
+  #       shell: bash
+  #       run: |
+  #         echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+  #         # echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
+
+  #     # - name: Download artifacts
+  #     #   uses: actions/download-artifact@v2
+  #     #   with:
+  #     #     name: mailu-none
+  #     #     path: /tmp
       
-      # - name: Load images
-      #   run: |
-      #     docker load --input /tmp/mailu-none.tar
+  #     # - name: Load images
+  #     #   run: |
+  #     #     docker load --input /tmp/mailu-none.tar
 
-      - name: Login to DockerHub
-        if: env.MAILU_PUSH == 'true'
-        uses: docker/login-action@v1 
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.DOCKER_ORG }}
-          password: ${{ secrets.DOCKER_PW }}
+  #     - name: Login to DockerHub
+  #       if: env.MAILU_PUSH == 'true'
+  #       uses: docker/login-action@v1 
+  #       with:
+  #         registry: ${{ env.REGISTRY }}
+  #         username: ${{ secrets.DOCKER_ORG }}
+  #         password: ${{ secrets.DOCKER_PW }}
 
-      - name: Run none
-        shell: bash
-        run: |
-          docker images
-          docker run --rm --name none ${{ secrets.DOCKER_ORG }}/${{ secrets.DOCKER_PREFIX }}none:${{ env.MAILU_VERSION }} timeout 2 sh -c 'echo start && sleep 5 && echo finish'
+  #     - name: Run none
+  #       shell: bash
+  #       run: |
+  #         docker images
+  #         docker run --rm --name none ${{ secrets.DOCKER_ORG }}/${{ secrets.DOCKER_PREFIX }}none:${{ env.MAILU_VERSION }} timeout 2 sh -c 'echo start && sleep 5 && echo finish'
 
 
 

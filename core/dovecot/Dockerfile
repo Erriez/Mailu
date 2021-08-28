@@ -1,5 +1,9 @@
 ARG DISTRO=alpine:3.14
-FROM $DISTRO as builder
+
+# Temporary build image
+FROM --platform=$BUILDPLATFORM $DISTRO as builder
+ARG BUILDPLATFORM
+
 WORKDIR /tmp
 RUN apk add git build-base automake autoconf libtool dovecot-dev xapian-core-dev icu-dev
 RUN git clone https://github.com/grosjo/fts-xapian.git \
@@ -10,7 +14,9 @@ RUN git clone https://github.com/grosjo/fts-xapian.git \
   && make \
   && make install
 
+# Application image
 FROM $DISTRO
+
 # python3 shared with most images
 RUN apk add --no-cache \
     python3 py3-pip git bash py3-multidict py3-yarl \

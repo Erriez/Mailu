@@ -1,8 +1,9 @@
 # First stage to build assets
 ARG DISTRO=alpine:3.14
-ARG ARCH=""
-FROM ${ARCH}node:8 as assets
-COPY --from=balenalib/rpi-alpine:3.14 /usr/bin/qemu-arm-static /usr/bin/qemu-arm-static
+
+# Temporary build image
+FROM --platform=$TARGETPLATFORM node:8 as assets
+ARG TARGETPLATFORM
 
 COPY package.json ./
 RUN npm install
@@ -13,8 +14,9 @@ RUN mkdir static \
  && ./node_modules/.bin/webpack-cli
 
 
-# Actual application
+# Application image
 FROM $DISTRO
+
 # python3 shared with most images
 RUN apk add --no-cache \
     python3 py3-pip git bash \

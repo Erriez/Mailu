@@ -70,8 +70,7 @@ jobs:
           context: ./setup
           platforms: ${{ env.MAILU_PLATFORMS }}
           push: ${{ env.MAILU_PUSH }}
-          tags: |
-            ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}setup:${{ env.MAILU_VERSION }}
+          tags: ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}setup:${{ env.MAILU_VERSION }}
 
       - name: Build docs
         uses: docker/build-push-action@v2
@@ -79,8 +78,7 @@ jobs:
           context: ./docs
           platforms: ${{ env.MAILU_PLATFORMS }}
           push: ${{ env.MAILU_PUSH }}
-          tags: |
-            ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}docs:${{ env.MAILU_VERSION }}
+          tags: ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}docs:${{ env.MAILU_VERSION }}
 
       - name: Build none
         uses: docker/build-push-action@v2
@@ -90,64 +88,60 @@ jobs:
           #load: ${{ env.MAILU_LOAD }}
           push: ${{ env.MAILU_PUSH }}
           #outputs: type=docker,dest=/tmp/mailu-none.tar
-          #cache-from: type=registry,ref=${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:buildcache-${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
-          #cache-to: type=registry,ref=${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:buildcache-${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }},mode=max
+          #cache-from: type=registry,ref=${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:buildcache-${{ env.MAILU_VERSION }}
+          #cache-to: type=registry,ref=${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:buildcache-${{ env.MAILU_VERSION }},mode=max
           tags: ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:${{ env.MAILU_VERSION }}
 
-      # - name: Build nginx
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     context: ./core/nginx
-      #     platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
-      #     push: ${{ env.MAILU_PUSH }}
-      #     tags: |
-      #       ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}nginx:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+      - name: Build nginx
+        uses: docker/build-push-action@v2
+        with:
+          context: ./core/nginx
+          platforms: ${{ env.MAILU_PLATFORMS }}
+          push: ${{ env.MAILU_PUSH }}
+          tags: ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}nginx:${{ env.MAILU_VERSION }}
 
       # - name: Build dovecot
       #   uses: docker/build-push-action@v2
       #   with:
       #     context: ./core/dovecot
-      #     platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
+      #     platforms: ${{ env.MAILU_PLATFORMS }}
       #     push: ${{ env.MAILU_PUSH }}
-      #     tags: |
-      #       ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}dovecot:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+      #     tags: ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}dovecot:${{ env.MAILU_VERSION }}
 
       # - name: Build postfix
       #   uses: docker/build-push-action@v2
       #   with:
       #     context: ./core/postfix
-      #     platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
+      #     platforms: ${{ env.MAILU_PLATFORMS }}
       #     push: ${{ env.MAILU_PUSH }}
       #     tags: |
-      #       ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}postfix:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+      #       ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}postfix:${{ env.MAILU_VERSION }}
 
       #  name: Build rspamd
       #   uses: docker/build-push-action@v2
       #   with:
       #     context: ./core/rspamd
-      #     platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
+      #     platforms: ${{ env.MAILU_PLATFORMS }}
       #     push: ${{ env.MAILU_PUSH }}
       #     tags: |
-      #       ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}rspamd:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+      #       ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}rspamd:${{ env.MAILU_VERSION }}
 
       # - name: Build admin
       #   uses: docker/build-push-action@v2
       #   with:
       #     context: ./core/admin
-      #     platforms: linux/arm64 #TODO: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
+      #     platforms: linux/arm64 #TODO: ${{ env.MAILU_PLATFORMS }}
       #     push: ${{ env.MAILU_PUSH }}
       #     tags: |
-      #       ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}admin:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+      #       ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}admin:${{ env.MAILU_VERSION }}
 
-      # # Build rainloop
-      # - name: Build rainloop
-      #   uses: docker/build-push-action@v2
-      #   with:
-      #     context: ./webmails/rainloop
-      #     platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
-      #     push: ${{ env.MAILU_PUSH }}
-      #     tags: |
-      #       ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}rainloop:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+      - name: Build rainloop
+        uses: docker/build-push-action@v2
+        with:
+          context: ./webmails/rainloop
+          platforms: ${{ env.MAILU_PLATFORMS }}
+          push: ${{ env.MAILU_PUSH }}
+          tags: ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}rainloop:${{ env.MAILU_VERSION }}
 
       # - name: Upload artifacts
       #   uses: actions/upload-artifact@v2

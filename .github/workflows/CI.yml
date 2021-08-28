@@ -173,21 +173,28 @@ jobs:
           echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
 
-      - name: Download artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: mailu-none
-          path: /tmp
+      # - name: Download artifacts
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: mailu-none
+      #     path: /tmp
       
-      - name: Load images
-        run: |
-          docker load --input /tmp/mailu-none.tar
+      # - name: Load images
+      #   run: |
+      #     docker load --input /tmp/mailu-none.tar
+
+      - name: Login to DockerHub
+        if: env.MAILU_PUSH == 'true'
+        uses: docker/login-action@v1 
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.DOCKER_ORG }}
+          password: ${{ secrets.DOCKER_PW }}
 
       - name: Run none
         shell: bash
         run: |
           docker images
-          echo ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
           docker run --rm --name none ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }} timeout 2 sh -c 'echo start && sleep 5 && echo finish'
 
 

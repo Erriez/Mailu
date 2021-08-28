@@ -34,7 +34,11 @@ jobs:
         shell: bash
     strategy:
       matrix:
-        image: [none, setup]
+        include:
+          - image: none
+            context: ./core/none
+          - image: setup
+            context: ./setup
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -61,7 +65,7 @@ jobs:
       - name: Build images
         uses: docker/build-push-action@v2
         with:
-          context: ./${{ matrix.image }}
+          context: ./${{ matrix.context }}
           platforms: ${{ env.MAILU_PLATFORMS }}
           push: ${{ env.MAILU_PUSH }}
           tags: ${{ secrets.DOCKER_ORG }}/${{ secrets.DOCKER_PREFIX }}${{ matrix.image }}:${{ env.MAILU_VERSION }}

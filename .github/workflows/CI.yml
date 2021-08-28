@@ -21,7 +21,7 @@ on:
 env:
   REGISTRY: docker.io
   MAILU_VERSION: master
-  MAILU_PLATFORMS: linux/amd64,linux/arm64 #linux/arm/v6,linux/arm/v7,linux/arm64
+  MAILU_PLATFORMS: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
   MAILU_PUSH: true
   MAILU_LOAD: false
 
@@ -35,10 +35,22 @@ jobs:
     strategy:
       matrix:
         include:
-          - image: none
-            context: ./core/none
+          # Helper
           - image: setup
             context: ./setup
+          - image: docs
+            context: ./docs
+          # Core
+          - image: none
+            context: ./core/none
+          - image: nginx
+            context: ./core/nginx
+          # Webmail
+          - image: rainloop
+            context: ./webmails/rainloop
+          # Optional
+          - image: traefik-certdumper
+            context: ./optional/traefik-certdumper
     steps:
       - name: Checkout
         uses: actions/checkout@v2

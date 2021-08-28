@@ -56,8 +56,8 @@ jobs:
       #   uses: docker/login-action@v1 
       #   with:
       #     registry: ${{ env.REGISTRY }}
-      #     username: ${{ secrets.DOCKER_HUB_USERNAME }}
-      #     password: ${{ secrets.DOCKER_HUB_TOKEN }}
+      #     username: ${{ secrets.DOCKER_ORG }}
+      #     password: ${{ secrets.DOCKER_PW }}
 
       # # Caching: https://docs.docker.com/ci-cd/github-actions/
       - name: Cache Docker layers
@@ -76,7 +76,7 @@ jobs:
       #     platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
       #     push: ${{ env.MAILU_PUSH }}
       #     tags: |
-      #       ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.MAILU_PREFIX }}setup:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+      #       ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}setup:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
 
       # - name: Build docs
       #   uses: docker/build-push-action@v2
@@ -85,7 +85,7 @@ jobs:
       #     platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
       #     push: ${{ env.MAILU_PUSH }}
       #     tags: |
-      #       ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.MAILU_PREFIX }}docs:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+      #       ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}docs:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
 
       - name: Build none
         uses: docker/build-push-action@v2
@@ -95,7 +95,7 @@ jobs:
           load: ${{ env.MAILU_LOAD }}
           push: ${{ env.MAILU_PUSH }}
           tags: |
-            localhost:5000/${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.MAILU_PREFIX }}none:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+            localhost:5000/${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
 
       # - name: Build nginx
       #   uses: docker/build-push-action@v2
@@ -104,7 +104,7 @@ jobs:
       #     platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
       #     push: ${{ env.MAILU_PUSH }}
       #     tags: |
-      #       ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.MAILU_PREFIX }}nginx:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+      #       ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}nginx:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
 
       # - name: Build dovecot
       #   uses: docker/build-push-action@v2
@@ -113,7 +113,7 @@ jobs:
       #     platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
       #     push: ${{ env.MAILU_PUSH }}
       #     tags: |
-      #       ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.MAILU_PREFIX }}dovecot:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+      #       ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}dovecot:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
 
       # - name: Build postfix
       #   uses: docker/build-push-action@v2
@@ -122,7 +122,7 @@ jobs:
       #     platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
       #     push: ${{ env.MAILU_PUSH }}
       #     tags: |
-      #       ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.MAILU_PREFIX }}postfix:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+      #       ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}postfix:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
 
       #  name: Build rspamd
       #   uses: docker/build-push-action@v2
@@ -131,7 +131,7 @@ jobs:
       #     platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
       #     push: ${{ env.MAILU_PUSH }}
       #     tags: |
-      #       ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.MAILU_PREFIX }}rspamd:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+      #       ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}rspamd:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
 
       # - name: Build admin
       #   uses: docker/build-push-action@v2
@@ -140,7 +140,7 @@ jobs:
       #     platforms: linux/arm64 #TODO: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
       #     push: ${{ env.MAILU_PUSH }}
       #     tags: |
-      #       ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.MAILU_PREFIX }}admin:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+      #       ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}admin:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
 
       # # Build rainloop
       # - name: Build rainloop
@@ -150,7 +150,7 @@ jobs:
       #     platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
       #     push: ${{ env.MAILU_PUSH }}
       #     tags: |
-      #       ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.MAILU_PREFIX }}rainloop:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+      #       ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}rainloop:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
 
 
       - name: Show images
@@ -178,15 +178,15 @@ jobs:
   #       uses: docker/login-action@v1 
   #       with:
   #         registry: ${{ env.REGISTRY }}
-  #         username: ${{ secrets.DOCKER_HUB_USERNAME }}
-  #         password: ${{ secrets.DOCKER_HUB_TOKEN }}
+  #         username: ${{ secrets.DOCKER_ORG }}
+  #         password: ${{ secrets.DOCKER_PW }}
 
   #     - name: Run none
   #       shel: bash
   #       run: |
   #         docker images
-  #         echo ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.MAILU_PREFIX }}none:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
-  #         docker run -it --rm --name none ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.MAILU_PREFIX }}none:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }} timeout 2 sh -c 'echo start && sleep 5 && echo finish'
+  #         echo ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+  #         docker run -it --rm --name none ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }} timeout 2 sh -c 'echo start && sleep 5 && echo finish'
 
 
 

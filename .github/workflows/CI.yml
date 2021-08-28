@@ -89,7 +89,7 @@ jobs:
           platforms: ${{ env.MAILU_PLATFORMS }}
           #load: ${{ env.MAILU_LOAD }}
           push: ${{ env.MAILU_PUSH }}
-          outputs: type=docker,dest=/tmp/mailu-none.tar
+          #outputs: type=docker,dest=/tmp/mailu-none.tar
           cache-from: type=registry,ref=${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:buildcache-${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
           cache-to: type=registry,ref=${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:buildcache-${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }},mode=max
           tags: ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}

@@ -90,8 +90,8 @@ jobs:
           #load: ${{ env.MAILU_LOAD }}
           push: ${{ env.MAILU_PUSH }}
           #outputs: type=docker,dest=/tmp/mailu-none.tar
-          cache-from: type=registry,ref=${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:buildcache-${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
-          cache-to: type=registry,ref=${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:buildcache-${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }},mode=max
+          #cache-from: type=registry,ref=${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:buildcache-${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+          #cache-to: type=registry,ref=${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:buildcache-${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }},mode=max
           tags: ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
 
       # - name: Build nginx
@@ -149,11 +149,11 @@ jobs:
       #     tags: |
       #       ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}rainloop:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: mailu-none
-          path: /tmp/mailu-none.tar
+      # - name: Upload artifacts
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: mailu-none
+      #     path: /tmp/mailu-none.tar
 
       # - name: Show Docker status and images
       #   shell: bash

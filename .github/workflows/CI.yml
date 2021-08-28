@@ -155,40 +155,41 @@ jobs:
       #       ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}rainloop:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
 
 
-      - name: Show images
+      - name: Show Docker status and images
         shell: bash
         run: |
+          docker ps
           docker images
 
-  # test:
-  #   name: Test images
-  #   runs-on: ubuntu-latest
-  #   needs:
-  #     - build
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v2
+  test:
+    name: Test images
+    runs-on: ubuntu-latest
+    needs:
+      - build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
 
-  #     - name: Set environment variables
-  #       shell: bash
-  #       run: |
-  #         echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
-  #         echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
+      - name: Set environment variables
+        shell: bash
+        run: |
+          echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
 
-  #     - name: Login to DockerHub
-  #       if: env.MAILU_PUSH == 'true'
-  #       uses: docker/login-action@v1 
-  #       with:
-  #         registry: ${{ env.REGISTRY }}
-  #         username: ${{ secrets.DOCKER_ORG }}
-  #         password: ${{ secrets.DOCKER_PW }}
+      # - name: Login to DockerHub
+      #   if: env.MAILU_PUSH == 'true'
+      #   uses: docker/login-action@v1 
+      #   with:
+      #     registry: ${{ env.REGISTRY }}
+      #     username: ${{ secrets.DOCKER_ORG }}
+      #     password: ${{ secrets.DOCKER_PW }}
 
-  #     - name: Run none
-  #       shel: bash
-  #       run: |
-  #         docker images
-  #         echo ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
-  #         docker run -it --rm --name none ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }} timeout 2 sh -c 'echo start && sleep 5 && echo finish'
+      - name: Run none
+        shel: bash
+        run: |
+          docker images
+          echo ${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }}
+          docker run -it --rm --name none localhost:5000/${{ secrets.DOCKER_ORG }}/${{ env.MAILU_PREFIX }}none:${{ env.MAILU_VERSION }}-${{ env.SHORT_SHA }} timeout 2 sh -c 'echo start && sleep 5 && echo finish'
 
 
 

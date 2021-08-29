@@ -22,13 +22,13 @@ on:
 
 env:
   MAILU_VERSION: master
-  MAILU_PLATFORMS: linux/amd64 #linux/arm/v7,linux/arm64
+  MAILU_PLATFORMS: linux/amd64 #,linux/arm/v7,linux/arm64
 
 jobs:
   build:
     name: Build Mailu images
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     defaults:
       run:
         shell: bash
@@ -36,41 +36,41 @@ jobs:
       matrix:
         include:
           # Helper
-          # - image: setup
-          #   context: ./setup
-          # - image: docs
-          #   context: ./docs
-          # # Core
-          # - image: admin
-          #   context: ./core/admin
-          # - image: dovecot
-          #   context: ./core/dovecot
-          # - image: nginx
-          #   context: ./core/nginx
+          - image: setup
+            context: ./setup
+          - image: docs
+            context: ./docs
+          # Core
+          - image: admin
+            context: ./core/admin
+          - image: dovecot
+            context: ./core/dovecot
+          - image: nginx
+            context: ./core/nginx
           - image: none
             context: ./core/none
-          # - image: postfix
-          #   context: ./core/postfix
-          # - image: rspamd
-          #   context: ./core/rspamd
-          # # Webmail
-          # - image: rainloop
-          #   context: ./webmails/rainloop
-          # - image: roundcube
-          #   context: ./webmails/roundcube
-          # # Optional
-          # - image: clamav
-          #   context: ./optional/clamav
-          # - image: fetchmail
-          #   context: ./optional/fetchmail
-          # - image: postgresql
-          #   context: ./optional/postgresql
-          # - image: radicale
-          #   context: ./optional/radicale
+          - image: postfix
+            context: ./core/postfix
+          - image: rspamd
+            context: ./core/rspamd
+          # Webmail
+          - image: rainloop
+            context: ./webmails/rainloop
+          - image: roundcube
+            context: ./webmails/roundcube
+          # Optional
+          - image: clamav
+            context: ./optional/clamav
+          - image: fetchmail
+            context: ./optional/fetchmail
+          - image: postgresql
+            context: ./optional/postgresql
+          - image: radicale
+            context: ./optional/radicale
           - image: traefik-certdumper
             context: ./optional/traefik-certdumper
-          # - image: unbound
-          #   context: ./optional/unbound
+          - image: unbound
+            context: ./optional/unbound
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -81,32 +81,20 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      # - name: Login to DockerHub
-      #   uses: docker/login-action@v1 
-      #   with:
-      #     registry: ${{ secrets.DOCKER_REGISTRY }}
-      #     username: ${{ secrets.DOCKER_ORG }}
-      #     password: ${{ secrets.DOCKER_PW }}
-
+      - name: Login to DockerHub
+        uses: docker/login-action@v1 
+        with:
+          registry: ${{ secrets.DOCKER_REGISTRY }}
+          username: ${{ secrets.DOCKER_ORG }}
+          password: ${{ secrets.DOCKER_PW }}
 
       - name: Build images
         uses: docker/build-push-action@v2
         with:
           context: ./${{ matrix.context }}
           platforms: ${{ env.MAILU_PLATFORMS }}
-          #push: true
-          outputs: type=docker,dest=/tmp/mailu-${{ matrix.image }}.tar
+          push: true
           tags: ${{ secrets.DOCKER_ORG }}/${{ secrets.DOCKER_PREFIX }}${{ matrix.image }}:${{ env.MAILU_VERSION }}
-
-      - name: List artifact directory
-        run: ls -la /tmp
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: mailu-images
-          path: /tmp/mailu-${{ matrix.image }}.tar
-          retention-days: 1
 
   test:
     name: Test Mailu images
@@ -136,28 +124,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Download artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: mailu-images
-          path: /tmp
-
-      - name: List artifact directory
-        run: ls -la /tmp
-
-      - name: Load image
-        run: |
-          # docker load --input /tmp/mailu-admin.tar
-          # docker load --input /tmp/mailu-dovecot.tar
-          # docker load --input /tmp/mailu-nginx.tar
-          docker load --input /tmp/mailu-none.tar
-          # docker load --input /tmp/mailu-postfix.tar
-          # docker load --input /tmp/mailu-rspamd.tar
-          # docker load --input /tmp/mailu-rainloop.tar
-          # docker load --input /tmp/mailu-roundcube.tar
-          # docker load --input /tmp/mailu-fetchmail.tar
-          docker images
-
       - name: Run test suite
         run: |
           echo "Install Python packages"
@@ -165,56 +131,11 @@ jobs:
           echo "Copy certs"
           sudo -- sh -c 'mkdir -p /mailu && cp -r tests/certs /mailu && chmod 600 /mailu/certs/*'
           echo "Run tests"
-          #python tests/compose/test.py ${{ matrix.test_type }} ${{ matrix.test_start_delay }}
-          echo "tests/compose/test.py ${{ matrix.test_type }} ${{ matrix.test_start_delay }}"
+          python tests/compose/test.py ${{ matrix.test_type }} ${{ matrix.test_start_delay }}
         env:
           DOCKER_ORG: ${{ secrets.DOCKER_ORG }}
           DOCKER_PREFIX: ${{ secrets.DOCKER_PREFIX }}
           MAILU_VERSION: ${{ env.MAILU_VERSION }}
-
-  deploy:
-    name: Deploy Mailu images
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs:
-      - test
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: mailu-images
-          path: /tmp/mailu
-
-      - name: Login to DockerHub
-        uses: docker/login-action@v1 
-        with:
-          registry: ${{ secrets.DOCKER_REGISTRY }}
-          username: ${{ secrets.DOCKER_ORG }}
-          password: ${{ secrets.DOCKER_PW }}
-
-      - name: Deploy images
-        run: |
-          docker load --input /tmp/mailu/mailu-admin.tar
-          docker load --input /tmp/mailu/mailu-dovecot.tar
-          docker load --input /tmp/mailu/mailu-nginx.tar
-          docker load --input /tmp/mailu/mailu-none.tar
-          docker load --input /tmp/mailu/mailu-postfix.tar
-          docker load --input /tmp/mailu/mailu-rspamd.tar
-          docker load --input /tmp/mailu/mailu-rainloop.tar
-          docker load --input /tmp/mailu/mailu-roundcube.tar
-          docker load --input /tmp/mailu/mailu-fetchmail.tar
-          docker image ls -a
-          echo "TODO: Push all images"
-
-      - name: Remove artifacts
-        run: rm -rf /tmp/mailu/*
-
-      - name: Upload dummy artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: mailu-images
-          path: /tmp/mailu
-          retention-days: 1
 
   # test:
   #   name: Test images
@@ -251,6 +172,13 @@ jobs:
   #       run: |
   #         docker images
   #         docker run --rm --name none ${{ secrets.DOCKER_ORG }}/${{ secrets.DOCKER_PREFIX }}none:${{ env.MAILU_VERSION }} timeout 2 sh -c 'echo start && sleep 5 && echo finish'
+
+
+
+
+
+
+
 
 
         #For branch TESTING, we set the image tag to PR-xxxx

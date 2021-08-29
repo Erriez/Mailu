@@ -81,21 +81,32 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Login to DockerHub
-        uses: docker/login-action@v1 
-        with:
-          registry: ${{ secrets.DOCKER_REGISTRY }}
-          username: ${{ secrets.DOCKER_ORG }}
-          password: ${{ secrets.DOCKER_PW }}
+      # - name: Login to DockerHub
+      #   uses: docker/login-action@v1 
+      #   with:
+      #     registry: ${{ secrets.DOCKER_REGISTRY }}
+      #     username: ${{ secrets.DOCKER_ORG }}
+      #     password: ${{ secrets.DOCKER_PW }}
 
       - name: Build images
         uses: docker/build-push-action@v2
         with:
           context: ./${{ matrix.context }}
           platforms: ${{ env.MAILU_PLATFORMS }}
-          no-cache: true
-          push: true
+          #no-cache: true
+          #push: true
+          outputs: type=docker,dest=/tmp/mailu-${{ matrix.image }}.tar
           tags: ${{ secrets.DOCKER_ORG }}/${{ secrets.DOCKER_PREFIX }}${{ matrix.image }}:${{ env.MAILU_VERSION }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: images
+          path: /tmp/mailu-${{ matrix.image }}.tar
+          retention-days: 1
+
+      - name: Show artifacts
+        run: ls -la /tmp
 
   test:
     name: Test Mailu images
@@ -125,6 +136,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: images
+          path: /tmp
+
+      - name: Load image
+        run: |
+          docker load --input /tmp/mailu-admin.tar
+          docker load --input /tmp/mailu-dovecot.tar
+          docker load --input /tmp/mailu-nginx.tar
+          docker load --input /tmp/mailu-none.tar
+          docker load --input /tmp/mailu-postfix.tar
+          docker load --input /tmp/mailu-rspamd.tar
+          docker load --input /tmp/mailu-rainloop.tar
+          docker load --input /tmp/mailu-roundcube.tar
+          docker load --input /tmp/mailu-fetchmail.tar
+          docker image ls -a
+
       - name: Run test suite
         run: |
           echo "Install Python packages"
@@ -137,6 +167,34 @@ jobs:
           DOCKER_ORG: ${{ secrets.DOCKER_ORG }}
           DOCKER_PREFIX: ${{ secrets.DOCKER_PREFIX }}
           MAILU_VERSION: ${{ env.MAILU_VERSION }}
+    
+  deploy:
+    name: Deploy Mailu images
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs:
+      - test
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: images
+          path: /tmp
+        
+      - name: Deploy images
+        run: |
+          docker load --input /tmp/mailu-admin.tar
+          docker load --input /tmp/mailu-dovecot.tar
+          docker load --input /tmp/mailu-nginx.tar
+          docker load --input /tmp/mailu-none.tar
+          docker load --input /tmp/mailu-postfix.tar
+          docker load --input /tmp/mailu-rspamd.tar
+          docker load --input /tmp/mailu-rainloop.tar
+          docker load --input /tmp/mailu-roundcube.tar
+          docker load --input /tmp/mailu-fetchmail.tar
+          docker image ls -a
+          echo "TODO: Deploy"
+
 
   # test:
   #   name: Test images

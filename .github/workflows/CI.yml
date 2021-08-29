@@ -22,7 +22,7 @@ on:
 
 env:
   MAILU_VERSION: master
-  MAILU_PLATFORMS: linux/amd64 #,linux/arm/v6,linux/arm/v7,linux/arm64
+  MAILU_PLATFORMS: linux/amd64,linux/arm64 #,linux/arm/v6,linux/arm/v7,linux/arm64
 
 jobs:
   build:
@@ -137,6 +137,9 @@ jobs:
           DOCKER_PREFIX: ${{ secrets.DOCKER_PREFIX }}
           MAILU_VERSION: ${{ env.MAILU_VERSION }}
 
+
+
+
   # test:
   #   name: Test images
   #   runs-on: ubuntu-latest
@@ -172,13 +175,6 @@ jobs:
   #       run: |
   #         docker images
   #         docker run --rm --name none ${{ secrets.DOCKER_ORG }}/${{ secrets.DOCKER_PREFIX }}none:${{ env.MAILU_VERSION }} timeout 2 sh -c 'echo start && sleep 5 && echo finish'
-
-
-
-
-
-
-
 
 
         #For branch TESTING, we set the image tag to PR-xxxx

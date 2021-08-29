@@ -6,13 +6,13 @@ on:
       - feat-*
 
 ###############################################
-# REQUIRED secrets
-# DOCKER_UN: ${{ secrets.Docker_Login }}
-#    Username of docker login for pushing the images to repo $DOCKER_ORG
-# DOCKER_PW: ${{ secrets.Docker_Password }}
-#    Password of docker login for pushing the images to repo $DOCKER_ORG
-# DOCKER_ORG: ${{ secrets.DOCKER_ORG }}
-#    The docker repository where the images are pushed to.
+# Github repository | Settings | Secrets
+#   DOCKER_LOGIN:
+#      Required: DockerHub username
+#   DOCKER_PASSWORD:
+#      Required: DockerhHub password
+#   DOCKER_PREFIX:
+#      Optional: Image prefix name, for example: mailu-
 ################################################
 
 env:
@@ -79,8 +79,8 @@ jobs:
       - name: Login to DockerHub
         uses: docker/login-action@v1 
         with:
-          username: ${{ secrets.Docker_Login }}
-          password: ${{ secrets.Docker_Password }}
+          username: ${{ secrets.DOCKER_LOGIN }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build images
         uses: docker/build-push-action@v2
@@ -88,7 +88,7 @@ jobs:
           context: ./${{ matrix.context }}
           platforms: ${{ env.MAILU_PLATFORMS }}
           push: true
-          tags: ${{ secrets.DOCKER_ORG }}/${{ secrets.DOCKER_PREFIX }}${{ matrix.image }}:${{ env.MAILU_VERSION }}
+          tags: ${{ secrets.DOCKER_LOGIN }}/${{ secrets.DOCKER_PREFIX }}${{ matrix.image }}:${{ env.MAILU_VERSION }}
 
   test:
     name: Test Mailu images
@@ -127,6 +127,6 @@ jobs:
           echo "Run tests"
           python tests/compose/test.py ${{ matrix.test_type }} ${{ matrix.test_start_delay }}
         env:
-          DOCKER_ORG: ${{ secrets.DOCKER_ORG }}
+          DOCKER_ORG: ${{ secrets.DOCKER_LOGIN }}
           DOCKER_PREFIX: ${{ secrets.DOCKER_PREFIX }}
           MAILU_VERSION: ${{ env.MAILU_VERSION }}

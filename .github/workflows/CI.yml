@@ -17,13 +17,13 @@ on:
 
 env:
   MAILU_VERSION: master
-  MAILU_PLATFORMS: linux/amd64,linux/arm/v7,linux/arm64
+  MAILU_PLATFORMS: linux/amd64,linux/arm64
 
 jobs:
   build:
     name: Build Mailu images
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     defaults:
       run:
         shell: bash

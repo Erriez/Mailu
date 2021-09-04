@@ -2,7 +2,7 @@
 ARG DISTRO=alpine:3.14
 
 # Temporary build image
-FROM --platform=$BUILDPLATFORM node:8 as assets
+FROM --platform=$BUILDPLATFORM node:16 as assets
 ARG BUILDPLATFORM
 
 COPY package.json ./

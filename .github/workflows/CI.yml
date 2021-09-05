@@ -17,7 +17,7 @@ on:
 
 env:
   MAILU_VERSION: master
-  MAILU_PLATFORMS: linux/amd64,linux/arm64
+  MAILU_PLATFORMS: linux/amd64
 
 jobs:
   build:

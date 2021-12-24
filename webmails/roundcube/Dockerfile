@@ -1,5 +1,4 @@
-FROM --platform=$BUILDPLATFORM php:8.0-apache
-ARG BUILDPLATFORM
+FROM php:8.0-apache
 
 ARG VERSION
 ENV TZ Etc/UTC
